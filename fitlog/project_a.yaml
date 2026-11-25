@@ -1,0 +1,123 @@
+# Fitlog PR 1本目：パターンA「ガチ検証系」約40秒
+# 使い方: python3 tools/render.py project_a.yaml
+#
+# 素材が無いカットは「素材待ち」のプレースホルダーで自動生成されるので、
+# 素材を input/ に入れるたびに再レンダリングすれば、少しずつ完成形に近づきます。
+#
+# セグメントの主なキー:
+#   src      素材ファイル（動画/画像）。省略時は bg の単色
+#   in       素材の使い始め（秒）
+#   dur      このカットの長さ（秒）
+#   speed    早回し倍率（>1 のときは音声ミュート）
+#   audio    keep=同録を使う / mute=無音
+#   vo       別録りのナレーション音声（同録の代わりに使う）
+#   zoom     {at, scale, cx, cy, ramp} at秒からscale倍へズーム（cx,cy=0〜1の注目点）
+#   kenburns 画像素材をゆっくりズーム
+#   dim/blur 背景を暗く/ぼかす（表やテロップを読みやすく）
+#   caption  セリフ字幕（画面下寄りに常時表示）
+#   telops   テロップのリスト {text, style, anim, start, end, pos}
+#            text内:  *強調*（黄色）  ${fitlog.kcal} などデータ差し込み  \n 改行
+#            style:   hook / title / sub / big / cta / label / caption
+#            anim:    pop / stamp / slide / type / countup / none
+#   sfx      効果音 [{src, at, volume}]
+
+output: out/fitlog_A_v1.mp4
+fps: 30
+font: assets/fonts/NotoSansJP.ttf
+data: data/meal1.yaml
+pr_badge: true          # 左上に小さく「PR」表記（媒体ラベルと併用推奨）
+bgm:                    # 商用利用OKの音源を assets/bgm/ に置く（無ければBGMなし）
+  src: assets/bgm/bgm.mp3
+  volume: 0.18
+  duck: true            # 声が入ると自動で音量を下げる
+loudness: -14           # 最終ラウドネス（LUFS）
+
+segments:
+  - id: hook
+    note: 白米をはかりに乗せる手元アップ（150.0g表示で止める）
+    src: input/A01_rice_scale.mov
+    dur: 2.0
+    audio: keep
+    caption: 50歳、体脂肪率一桁。それでも毎食の計算は正直面倒です
+    telops:
+      - {text: "毎食これ、\n*正直めんどい*", style: hook, anim: pop, start: 0.05}
+
+  - id: intro
+    note: 本人カメラ目線（キッチン）
+    src: input/A02_face_intro.mov
+    dur: 3.0
+    audio: keep
+    caption: 写真1枚でどこまで合うのか、ガチで検証します
+    telops:
+      - {text: "写真1枚でどこまで合う？", style: title, anim: slide, start: 0.1}
+      - {text: "*ガチ検証*", style: hook, anim: stamp, start: 0.6, pos: [540, 700]}
+
+  - id: manual
+    note: いつもの記録を早回し（鶏むね・卵・納豆・味噌汁を1品ずつ計量→入力）
+    src: input/A03_manual_weighing.mov
+    dur: 5.0
+    speed: 4
+    caption: いつもはこうやって、1品ずつ計って入力しています
+    vo: input/A03_vo.m4a
+    telops:
+      - {text: "▶▶ ×4", style: label, anim: none, start: 0, pos: [900, 330]}
+      - {text: "いつもは1品ずつ\n計量 → 入力", style: sub, anim: pop, start: 0.2}
+      - {text: "所要 *${manual_time}*", style: title, anim: stamp, start: 2.2, pos: [540, 760]}
+
+  - id: shoot
+    note: 定食を真上から撮影する手元（三脚・別アングル）＋シャッター音
+    src: input/A04_shoot_hands.mov
+    dur: 4.0
+    audio: keep
+    caption: 今回はFitlogで1枚撮るだけ
+    sfx:
+      - {src: assets/sfx/shutter.wav, at: 1.8, volume: 0.9}
+    telops:
+      - {text: "Fitlogで\n*1枚撮るだけ*", style: hook, anim: pop, start: 0.1}
+
+  - id: result
+    note: ★必須シーン：Fitlogの撮影→結果画面の画面録画（カロリーとPFCが出る瞬間）
+    src: input/A05_fitlog_screenrec.mp4
+    dur: 6.0
+    audio: mute
+    vo: input/A05_vo.m4a
+    zoom: {at: 2.0, scale: 1.45, cx: 0.5, cy: 0.35, ramp: 0.5}
+    caption: 出ました。${fitlog.kcal}キロカロリー、タンパク質${fitlog.P}グラム
+    telops:
+      - {text: "Fitlogの判定", style: label, anim: slide, start: 0.2, pos: [540, 330]}
+      - {text: "${fitlog.kcal}*kcal*", style: big, anim: countup, start: 2.4, pos: [540, 820]}
+      - {text: "P ${fitlog.P}g ／ F ${fitlog.F}g ／ C ${fitlog.C}g", style: sub, anim: slide, start: 3.2, pos: [540, 1000]}
+
+  - id: compare
+    note: 比較表（自動生成）。背景は結果画面をぼかして使用
+    src: input/A05_fitlog_screenrec.mp4
+    in: 4.0
+    dur: 8.0
+    audio: mute
+    vo: input/A06_vo.m4a
+    dim: 0.55
+    blur: 24
+    caption: 僕の計量値と比べると、カロリーの差は${diff.kcal}
+    telops:
+      - {text: "実測 vs Fitlog", style: title, anim: slide, start: 0.0, pos: [540, 360]}
+      - {type: table, start: 0.5}
+
+  - id: verdict
+    note: 本人が正直に評価（実際の感想に合わせてセリフ・テロップを変更）
+    src: input/A07_face_verdict.mov
+    dur: 6.0
+    audio: keep
+    caption: ${verdict.good}はかなり近い。${verdict.bad}はズレました
+    telops:
+      - {text: "*${verdict.good}*は近い", style: sub, anim: pop, start: 0.3, pos: [540, 520]}
+      - {text: "${verdict.bad}はズレた", style: sub, anim: pop, start: 2.8, pos: [540, 680]}
+
+  - id: cta
+    note: 本人＋紹介コード（画面下に固定）
+    src: input/A08_face_cta.mov
+    dur: 6.0
+    audio: keep
+    caption: 気になる人はプロフィールのリンクから。紹介コードはKANADAです
+    telops:
+      - {text: "紹介コード：KANADA", style: cta, anim: stamp, start: 0.2, pos: [540, 1000]}
+      - {text: "アプリはプロフィールのリンクから", style: sub, anim: slide, start: 0.7, pos: [540, 840]}

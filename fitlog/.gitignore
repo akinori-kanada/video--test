@@ -1,0 +1,9 @@
+# 撮影素材・書き出し・フォントはリポジトリに入れない
+input/*
+!input/.gitkeep
+out/
+assets/fonts/*.ttf
+assets/bgm/*
+!assets/bgm/.gitkeep
+assets/sfx/*.wav
+__pycache__/
