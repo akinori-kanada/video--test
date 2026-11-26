@@ -1,0 +1,41 @@
+# 1本目（パターンA）の投稿文テンプレート
+# python3 tools/captions.py posts_a.yaml → out/posts_A.txt
+# ${...} は data/meal1.yaml の値に置き換わります。${result_line} は下の result_line を参照します。
+data: data/meal1.yaml
+output: out/posts_A.txt
+
+# 検証結果の一言（実際の結果を見て書き換え。断定・効果の約束はNG）
+result_line: カロリーの差は${diff.kcal}kcal、タンパク質は${diff.P}g。${verdict.good}は近く、${verdict.bad}はズレました。
+
+instagram: |
+  #PR
+  50歳・体脂肪率一桁でも、毎食のPFC計算は正直めんどい。
+  食事記録アプリ「Fitlog」の写真判定が、僕の計量値とどこまで合うのかガチ検証しました。
+
+  ▶ 実測 ${measured.kcal}kcal ／ Fitlog ${fitlog.kcal}kcal
+  ${result_line}
+
+  ▼アプリはプロフィールのリンクから
+  y7technology.com/fitlog/go/kanada
+  紹介コード：KANADA
+
+  ※数値は撮影時の1食分の結果です
+
+  #Fitlog #食事記録 #PFCバランス #ボディメイク #50代ボディメイク #ベストボディジャパン #高タンパク #減量食 #筋トレ
+
+youtube_title: 【PR】体脂肪率一桁の50歳が、写真1枚のカロリー判定をガチ検証
+
+youtube: |
+  #PR
+  毎食の計量と、Fitlogの写真判定を比べてみました。
+  実測 ${measured.kcal}kcal ／ Fitlog ${fitlog.kcal}kcal
+  アプリ：y7technology.com/fitlog/go/kanada
+  紹介コード：KANADA
+  #Fitlog #ボディメイク #食事記録 #Shorts
+
+tiktok: |
+  #PR 50歳・体脂肪率一桁の計量値 vs 写真1枚のカロリー判定、どこまで合う？
+  実測${measured.kcal}kcal／Fitlog${fitlog.kcal}kcal
+  アプリ→y7technology.com/fitlog/go/kanada（プロフにもあり）
+  紹介コード：KANADA
+  #Fitlog #食事記録 #PFC #ボディメイク #50代 #筋トレ

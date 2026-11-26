@@ -17,6 +17,8 @@ import sys
 from pathlib import Path
 
 import yaml
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from PIL import Image, ImageDraw, ImageFont
 
 W, H = 1080, 1920
@@ -496,12 +498,64 @@ def finalize(segs, cfg, out, tmp, preview):
     return total
 
 
+def make_cover(cover, ctx, fonts, sample):
+    """Reels/TikTok用の表紙 1080x1920。文字はプロフィール一覧(3:4)で切れない中央帯に置く"""
+    src = None
+    for key in ("src", "fallback"):
+        if cover.get(key) and (ROOT / cover[key]).exists():
+            src = ROOT / cover[key]
+            break
+    out = ROOT / cover.get("output", "out/cover.jpg")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    if src is None:
+        bg = Image.new("RGB", (W, H), (46, 50, 58))
+    elif is_image(src):
+        bg = Image.open(src).convert("RGB")
+    else:
+        tmpf = out.with_suffix(".frame.png")
+        run(["ffmpeg", "-v", "error", "-y", "-ss", str(float(cover.get("in", 0))), "-i", str(src),
+             "-frames:v", "1", str(tmpf)])
+        bg = Image.open(tmpf).convert("RGB")
+        tmpf.unlink()
+    r = max(W / bg.width, H / bg.height)
+    bg = bg.resize((int(bg.width * r + 0.5), int(bg.height * r + 0.5)), Image.LANCZOS)
+    bg = bg.crop(((bg.width - W) // 2, (bg.height - H) // 2, (bg.width - W) // 2 + W, (bg.height - H) // 2 + H))
+    shade = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    sd = ImageDraw.Draw(shade)
+    for y in range(H):  # 中央を暗くして文字を読みやすく
+        a = int(150 * max(0.0, 1 - abs(y - 960) / 760))
+        sd.line([(0, y), (W, y)], fill=(0, 0, 0, a))
+    img = Image.alpha_composite(bg.convert("RGBA"), shade)
+    blocks = []
+    if cover.get("label"):
+        blocks.append(render_text(subst(cover["label"], ctx), "title", fonts))
+    blocks.append(render_text(subst(cover.get("text", ""), ctx).replace("\\n", "\n"), "hook", fonts))
+    gap = 40
+    total = sum(b.height for b in blocks) + gap * (len(blocks) - 1)
+    y = 960 - total // 2
+    for b in blocks:
+        img.alpha_composite(b, ((W - b.width) // 2, y))
+        y += b.height + gap
+    pr = render_text("PR", "label", fonts)
+    img.alpha_composite(pr, (60, 380))
+    if sample:
+        ImageDraw.Draw(img).text((W // 2, 1560), "SAMPLE DATA", font=fonts.get(90, 900),
+                                 fill=(255, 60, 60, 160), anchor="mm")
+    img.convert("RGB").save(out, quality=92)
+    # 一覧表示(3:4)での見え方
+    grid = img.convert("RGB").crop((0, (H - 1440) // 2, W, (H - 1440) // 2 + 1440))
+    grid.save(out.with_name(out.stem + "_grid.jpg"), quality=88)
+    print(f"cover: {out.relative_to(ROOT)}{'' if src else '  (写真待ち)'}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("project")
     ap.add_argument("--preview", action="store_true", help="低画質・高速")
     ap.add_argument("--only", help="指定IDのカットだけ書き出す")
     ap.add_argument("-o", "--output")
+    ap.add_argument("--cover-only", action="store_true", help="表紙だけ作る")
+    ap.add_argument("--check", action="store_true", help="レギュレーションチェックだけ")
     args = ap.parse_args()
 
     cfg = yaml.safe_load((ROOT / args.project).read_text())
@@ -513,6 +567,15 @@ def main():
     data = yaml.safe_load((ROOT / cfg["data"]).read_text()) if cfg.get("data") else {}
     ctx = build_context(data)
     sample = bool(data.get("sample"))
+
+    from compliance import lint_project, report
+    errors = report(lint_project(cfg, lambda t: subst(t, ctx), ROOT))
+    if args.check:
+        sys.exit(1 if errors else 0)
+    if cfg.get("cover"):
+        make_cover(cfg["cover"], ctx, fonts, sample)
+    if args.cover_only:
+        return
 
     segs = cfg["segments"]
     if args.only:

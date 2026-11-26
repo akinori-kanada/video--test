@@ -32,6 +32,15 @@ bgm:                    # 商用利用OKの音源を assets/bgm/ に置く（無
   duck: true            # 声が入ると自動で音量を下げる
 loudness: -14           # 最終ラウドネス（LUFS）
 
+# 表紙（Reels/TikTokのカバー）。src は写真か動画（動画なら in 秒のフレーム）
+cover:
+  src: input/A00_cover.jpg      # 定食と本人が写った写真がベスト。無ければ下のフォールバック
+  fallback: input/A04_shoot_hands.mov
+  in: 2.0
+  output: out/cover_A.jpg
+  label: 実測 vs Fitlog
+  text: "体脂肪率一桁の50歳が\n*写真1枚*の判定を\nガチ検証"
+
 segments:
   - id: hook
     note: 白米をはかりに乗せる手元アップ（150.0g表示で止める）
@@ -77,6 +86,7 @@ segments:
 
   - id: result
     note: ★必須シーン：Fitlogの撮影→結果画面の画面録画（カロリーとPFCが出る瞬間）
+    must: fitlog_result   # 必須シーン（レギュレーションチェック対象）
     src: input/A05_fitlog_screenrec.mp4
     dur: 6.0
     audio: mute
