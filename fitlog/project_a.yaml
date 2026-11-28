@@ -127,7 +127,9 @@ segments:
     src: input/A08_face_cta.mov
     dur: 6.0
     audio: keep
-    caption: 気になる人はプロフィールのリンクから。紹介コードはKANADAです
+    caption: プロフィールのリンクから。紹介コードKANADAで、Proが7日間無料です
     telops:
-      - {text: "紹介コード：KANADA", style: cta, anim: stamp, start: 0.2, pos: [540, 1000]}
-      - {text: "アプリはプロフィールのリンクから", style: sub, anim: slide, start: 0.7, pos: [540, 840]}
+      - {text: "アプリはプロフィールのリンクから", style: sub, anim: slide, start: 0.2, pos: [540, 600]}
+      - {text: "紹介コード：KANADA", style: cta, anim: stamp, start: 0.6, pos: [540, 760]}
+      - {text: "入力で *Pro 7日間無料*", style: sub, anim: pop, start: 1.2, pos: [540, 910]}
+      - {text: "はじめての方1回・カード不要・自動課金なし", style: label, anim: none, start: 1.2, pos: [540, 1010]}

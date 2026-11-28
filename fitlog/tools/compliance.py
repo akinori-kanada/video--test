@@ -62,6 +62,8 @@ def lint_post(platform, text):
         issues.append(("warn", f"投稿[{platform}]", "", f"専用URLが無い（プロフィールに置くならOK）: {REF_URL}"))
     if f"紹介コード：{REF_CODE}" not in text and f"紹介コード:{REF_CODE}" not in text:
         issues.append(("warn", f"投稿[{platform}]", "", "「紹介コード：KANADA」が無い（動画内にあればOK）"))
+    if "無料" in text and not ("はじめて" in text or "初めて" in text):
+        issues.append(("warn", f"投稿[{platform}]", "無料", "特典の条件（はじめての方1回・カード不要・自動課金なし）も併記"))
     return issues
 
 
